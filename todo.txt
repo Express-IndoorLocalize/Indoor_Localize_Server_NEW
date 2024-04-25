@@ -1,0 +1,3 @@
+01. Implement the rest of the code
+02. calibration fingerprint doesnt have a position. How position is calculated????
+03. check the mobile app code
