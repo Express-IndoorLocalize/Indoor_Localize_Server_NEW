@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express')
 const mongoose = require('mongoose')
 const positioningRoutes = require('./routes/positioning.route.js')
@@ -7,7 +8,7 @@ const calibratingRoutes = require('./routes/calibrating.route.js')
 const app = express()
 
 app.use(express.json())
-const uri = "mongodb+srv://wenuka19:vxKkePMVhe7SJEIe@indoorlocalizebackend.86xrlpa.mongodb.net/?retryWrites=true&w=majority&appName=IndoorLocalizeBackend";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@indoorlocalizebackend.86xrlpa.mongodb.net/?retryWrites=true&w=majority&appName=IndoorLocalizeBackend`;
 
 
 
