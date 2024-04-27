@@ -1,7 +1,13 @@
+const fs = require('fs');
 const {getMapGraphById} = require('../controllers/mapGraph.controller')
+const coordinates = JSON.parse(fs.readFileSync('nodes.json', 'utf8'));
 
 const heuristic = (node, goal) => {
     return 0;
+}
+
+function getCoordinates(nodes) {
+    return nodes.map(node => coordinates[node]);
 }
 
 function aStar(graph, start, goal) {
@@ -73,7 +79,8 @@ const getPath = async (req,res) => {
         const graph =  await getMapGraphById(projectID)
         const graph_to_send = graph.graph
         const path = aStar(graph_to_send,start,goal)
-        res.status(200).json({status:'success',data : {path}})
+        const coordinates = getCoordinates(path)
+        res.status(200).json({status:'success',data : {coordinates}})
     }catch(err){
         res.status(500).json({message:err.message})
     }

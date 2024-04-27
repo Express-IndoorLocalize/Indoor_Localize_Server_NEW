@@ -57,10 +57,9 @@ const calculateEuclideanDistance = (radioMap,receivedRSSValues) => {
     let tempValueOne;
     let tempValueTwo;
     let tempDistance;
-
-    if (radioMap.size !== receivedRSSValues.size){
-        return Number.NEGATIVE_INFINITY;
-    }
+    // if (radioMap.size !== receivedRSSValues.size){
+    //     return Number.NEGATIVE_INFINITY;
+    // }
 
     try{
         radioMap.forEach((rss,bssid)=>{
