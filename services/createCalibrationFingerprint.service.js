@@ -10,7 +10,7 @@ const createCalibrationFingerprint = async (req,res) => {
         await createFingerprintFromRequest(req.body)
         await createCalibrationPoint(req.body)
         
-        res.status(200).json({message:"DDONEDD"})
+        res.status(200).json({message:"Calibration fingerprint created successfully"})
 
     }catch(err){
         res.status(500).json({message:err.message})

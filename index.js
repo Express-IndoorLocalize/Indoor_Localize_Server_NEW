@@ -3,7 +3,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const positioningRoutes = require('./routes/positioning.route.js')
 const calibratingRoutes = require('./routes/calibrating.route.js')
-
+const navigationRoutes = require('./routes/navigation.route.js')
 
 const app = express()
 
@@ -14,6 +14,7 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@ind
 
 app.use("/api/positioning",positioningRoutes)
 app.use("/api/calibrating",calibratingRoutes)
+app.use("/api/navigating",navigationRoutes)
 app.get('/',(req,res) =>  {
     res.send('Hello World');
 })
