@@ -11,6 +11,17 @@ const getCalibrationPointsByID = async (projectID) => {
     }
 }
 
+const updateCalibrationPointByID = async (calibrationpointID,updatedFields) => {
+    try {
+        // Assume fingerprintModel is your Mongoose model for fingerprints
+        const new_calibrationPoint = await calibrationPoint.findByIdAndUpdate(calibrationpointID, updatedFields, { new: true });
+        return new_calibrationPoint;
+    } catch (error) {
+        console.error("Error updating fingerprint:", error);
+        throw error;
+    }
+}
+
 const createCalibrationPoint = async (reqBody) => {
     const receivedSignals= reqBody.received_signals
     try{
@@ -60,5 +71,6 @@ const addMaps = async() =>{
 module.exports = {
     getCalibrationPointsByID,
     addMaps,
-    createCalibrationPoint
+    createCalibrationPoint,
+    updateCalibrationPointByID
 }

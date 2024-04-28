@@ -57,27 +57,26 @@ const calculateEuclideanDistance = (radioMap,receivedRSSValues) => {
     let tempValueOne;
     let tempValueTwo;
     let tempDistance;
-    // if (radioMap.size !== receivedRSSValues.size){
-    //     return Number.NEGATIVE_INFINITY;
-    // }
+    if (radioMap.size !== receivedRSSValues.size){
+        return Number.NEGATIVE_INFINITY;
+    }
 
     try{
         radioMap.forEach((rss,bssid)=>{
             if (rss === rssNotReceived) {
                 tempValueOne = 0.0;
             }else{
-            tempValueOne = rss;
+             tempValueOne = rss;
             }
       
             if (receivedRSSValues.get(bssid) === rssNotReceived) {
             tempValueTwo = 0.0;
             }else {
             tempValueTwo = receivedRSSValues.get(bssid);
-            }
-            
+        }
+        
             tempDistance = tempValueOne - tempValueTwo;
             tempDistance *= tempDistance;
-    
             finalDistance += tempDistance;
         })
     }catch(e){
@@ -103,7 +102,7 @@ const getFloorByValue = (floorVotingMap) => {
 
 const calculateWeightedAverageKDistanceLocations = (locationDistances) => {
     try{
-        const k = 3;
+        const k = 5;
         let locationWeight = 0.0;
         let sumWeights = 0.0;
         let weightedSumX = 0.0;
@@ -145,7 +144,6 @@ const calculateWeightedAverageKDistanceLocations = (locationDistances) => {
           weightedSumX /= sumWeights;
           weightedSumY /= sumWeights;
           floor = getFloorByValue(floorVoting);
-
           const positionToReturn = {
               x : weightedSumX,
               y : weightedSumY,
@@ -163,7 +161,6 @@ const WKNN_algorithm = async (receivedDatabaseRSSValues,projectId) => {
     const calibrationPointList = await getCalibrationPointsByID(projectId);
     const locationDistanceResults = []
     try{
-
         calibrationPointList.forEach((calibrationPoint) => {
             const radioMap = calibrationPoint.radioMap
             const currentDistance = calculateEuclideanDistance(radioMap,receivedDatabaseRSSValues)
@@ -183,14 +180,35 @@ const WKNN_algorithm = async (receivedDatabaseRSSValues,projectId) => {
             (d1, d2) => d1.distance - d2.distance
         );
         const calculatedPosition = calculateWeightedAverageKDistanceLocations(sortedLocationDistances);
-
         return calculatedPosition;
-
-        //TODO: GetCells that include position and fingerprint returning thing
     }catch(err){
         throw err
     }
 }
+
+// const ml_knn = async (receivedDatabaseRSSValues,projectId) =>  {
+//     try{
+//         const calibrationPointList = await getCalibrationPointsByID(projectId,receivedDatabaseRSSValues);
+
+
+//     }catch(err){
+//         console.err(err.message)
+//     }
+
+// }
+
+// const prepare_data = (calibrationPoints) => {
+//     const rss_list = []
+//     const coordinates = []
+//     const received_data = []
+//     calibrationPoints.forEach((cp)=>{
+//         const temp_rss = []
+//         const temp_coord = []
+
+
+//     })
+// }
+
 
 module.exports = {
     calculatePosition

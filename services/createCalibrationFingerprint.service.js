@@ -1,6 +1,7 @@
 const {getAccessPointsByID,addMultipleAccessPoints} = require('../controllers/accessPoint.controller')
-const {createFingerprintFromRequest} = require('../controllers/calibrationFingerPrint.controller')
-const {createCalibrationPoint} = require('../controllers/calibrationPoint.controllers')
+const {createFingerprintFromRequest,getCalibrationFingerPrintByID,updateFingerprintByID} = require('../controllers/calibrationFingerPrint.controller')
+const {createCalibrationPoint,getCalibrationPointsByID,updateCalibrationPointByID} = require('../controllers/calibrationPoint.controllers')
+const {rssNotReceived} = require('../constants')
 
 const createCalibrationFingerprint = async (req,res) => {
     try{
@@ -9,7 +10,7 @@ const createCalibrationFingerprint = async (req,res) => {
         await createNonExistingAccessPoints(received_signals,projectId)
         await createFingerprintFromRequest(req.body)
         await createCalibrationPoint(req.body)
-        
+        await updateRadioMap(projectId)
         res.status(200).json({message:"Calibration fingerprint created successfully"})
 
     }catch(err){
@@ -18,7 +19,33 @@ const createCalibrationFingerprint = async (req,res) => {
 }
 
 const updateRadioMap = async (projectID) => {
-    // TODO : IMPLEMENT THIS AND THE REST
+    const databaseAccessPoints = await getAccessPointsByID(projectID)
+    const databaseFingerPrints = await getCalibrationFingerPrintByID(projectID)
+    const databaseCalibrationPoints = await getCalibrationPointsByID(projectID)
+
+    // const accessPointBSSIDs = databaseAccessPoints.map((ap) => ap.bssid)
+    for (const fingerprint of databaseFingerPrints) {
+        const radioMap = new Map(fingerprint.radioMap);
+        for (const accessPoint of databaseAccessPoints) {
+            if (!radioMap.has(accessPoint.bssid)) {
+                radioMap.set(accessPoint.bssid,rssNotReceived); // Set RSS value to -5000
+            }
+        }
+        console.log(radioMap);
+        await updateFingerprintByID(fingerprint._id,  { radioMap: Array.from(radioMap.entries()) });
+    }
+
+    for (const calibrationPoint of databaseCalibrationPoints) {
+        for (const accessPoint of databaseAccessPoints) {
+            if (!calibrationPoint.radioMap.has(accessPoint.bssid)) {
+                calibrationPoint.radioMap.set(accessPoint.bssid,rssNotReceived);; // Set RSS value to -5000
+            }
+        }
+        await updateCalibrationPointByID(calibrationPoint._id, { radioMap: calibrationPoint.radioMap });
+    }
+
+
+
 }
 
 const createNonExistingAccessPoints = async (accessPoints,projectId) => {
