@@ -1,6 +1,7 @@
 const {getAccessPointsByID} = require('../controllers/accessPoint.controller')
 const {getCalibrationPointsByID} = require('../controllers/calibrationPoint.controllers')
 const {rssNotReceived} = require('../constants')
+const KNN_Model = require('ml-knn')
 
 const calculatePosition = async (req,res) => {
     try{
@@ -31,11 +32,17 @@ const calculatePosition = async (req,res) => {
             console.error('No access point in database matches the received signals');
             res.status(400).json({message: 'No access point in database matches the received signals'})
         }else{
-            const fingerPrint = await WKNN_algorithm(
-                receivedDatabaseRSSValues,
-                projectId
-            )
-            console.log(fingerPrint)
+            // const fingerPrint = await WKNN_algorithm(
+            //     receivedDatabaseRSSValues,
+            //     projectId
+            // )
+            const predictions = await ml_knn(receivedDatabaseRSSValues,projectId)
+            const fingerPrint = {
+                x : predictions[0][0],
+                y : predictions[0][1],
+                floor : predictions[0][2],
+            }
+            console.log(fingerPrint)           
             res.status(200).json({message:fingerPrint})
         }
     }catch(err){
@@ -186,28 +193,44 @@ const WKNN_algorithm = async (receivedDatabaseRSSValues,projectId) => {
     }
 }
 
-// const ml_knn = async (receivedDatabaseRSSValues,projectId) =>  {
-//     try{
-//         const calibrationPointList = await getCalibrationPointsByID(projectId,receivedDatabaseRSSValues);
+const ml_knn = async (receivedDatabaseRSSValues,projectId) =>  {
+    try{
+        const calibrationPointList = await getCalibrationPointsByID(projectId);
+        const {signal_list,rssList,coordinateList} = await prepare_data(calibrationPointList,projectId,receivedDatabaseRSSValues)
+        const KNN = new KNN_Model(rssList,coordinateList,{k:3});
+        const predictions = KNN.predict(signal_list)
+        return predictions
+    }catch(err){
+        console.error(err.message)
+    }
 
+}
 
-//     }catch(err){
-//         console.err(err.message)
-//     }
+const prepare_data = async (calibrationPoints,projectId,receivedSignals) => {
+    const signal_list = [[]]
+    const rssList = []
+    const coordinateList = []
+    const accessPointList = await getAccessPointsByID(projectId)
+    calibrationPoints.forEach(cp => {
+        const temp_rss = []
+        const temp_coords = []
+        const radioMap = cp.radioMap
+        accessPointList.forEach(ap => {
+            const rss = radioMap.get(ap.bssid)
+            temp_rss.push(rss)
+        })
+        temp_coords.push(cp.position.x)
+        temp_coords.push(cp.position.y)
+        temp_coords.push(cp.position.floor)
+        rssList.push(temp_rss)
+        coordinateList.push(temp_coords)
+    })
+    accessPointList.forEach(ap => {
+        signal_list[0].push(receivedSignals.get(ap.bssid))
+    })
+    return {signal_list,rssList,coordinateList}
 
-// }
-
-// const prepare_data = (calibrationPoints) => {
-//     const rss_list = []
-//     const coordinates = []
-//     const received_data = []
-//     calibrationPoints.forEach((cp)=>{
-//         const temp_rss = []
-//         const temp_coord = []
-
-
-//     })
-// }
+}
 
 
 module.exports = {
